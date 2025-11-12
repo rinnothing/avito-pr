@@ -1,0 +1,9 @@
+.PHONY: install-deps
+install-deps:
+	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+
+.PHONY: generate-api
+generate-api: install-deps
+	go tool oapi-codegen -generate=types -package=gen -o api/gen/types.gen.go api/openapi.yml
+	go tool oapi-codegen -generate=server -package=gen -o api/gen/server.gen.go api/openapi.yml
+	go tool oapi-codegen -generate=client -package=gen -o api/gen/client.gen.go api/openapi.yml
