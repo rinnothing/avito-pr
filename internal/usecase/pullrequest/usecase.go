@@ -40,14 +40,15 @@ type impl struct {
 	prR   PRRepo
 	teamR TeamRepo
 	userR UserRepo
+	tr    transaction.Transactor
 }
 
-func New(pr PRRepo, team TeamRepo, user UserRepo) *impl {
-	return &impl{prR: pr, teamR: team, userR: user}
+func New(pr PRRepo, team TeamRepo, user UserRepo, tr transaction.Transactor) *impl {
+	return &impl{prR: pr, teamR: team, userR: user, tr: tr}
 }
 
 func (u *impl) CreatePR(ctx context.Context, pr *model.PullRequest) (*model.PullRequest, error) {
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		user, err := u.userR.GetUser(ctx, pr.AuthorId)
 		if err != nil {
 			return err
@@ -93,7 +94,7 @@ func (u *impl) CreatePR(ctx context.Context, pr *model.PullRequest) (*model.Pull
 
 func (u *impl) MergePR(ctx context.Context, id model.PRId) (*model.PullRequest, error) {
 	var pr *model.PullRequest
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		var err error
 		pr, err = u.prR.GetPR(ctx, id)
 		if err != nil {
@@ -110,7 +111,7 @@ func (u *impl) MergePR(ctx context.Context, id model.PRId) (*model.PullRequest, 
 func (u *impl) Reassign(ctx context.Context, id model.PRId, userId model.UserId) (*model.PullRequest, model.UserId, error) {
 	var newUserId model.UserId
 	var pr *model.PullRequest
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		var err error
 		pr, err = u.prR.GetPR(ctx, id)
 		if err != nil {

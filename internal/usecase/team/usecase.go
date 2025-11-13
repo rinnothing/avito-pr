@@ -30,14 +30,15 @@ var _ Usecase = &impl{}
 type impl struct {
 	teamR TeamRepo
 	userR UserRepo
+	tr    transaction.Transactor
 }
 
-func New(team TeamRepo, user UserRepo) *impl {
-	return &impl{teamR: team, userR: user}
+func New(team TeamRepo, user UserRepo, tr transaction.Transactor) *impl {
+	return &impl{teamR: team, userR: user, tr: tr}
 }
 
 func (u *impl) CreateTeam(ctx context.Context, team *model.Team, users []model.User) (*model.Team, []model.User, error) {
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		var err error
 		for _, user := range users {
 			err = u.userR.CreateUser(ctx, &user)
@@ -62,7 +63,7 @@ func (u *impl) CreateTeam(ctx context.Context, team *model.Team, users []model.U
 func (u *impl) GetTeam(ctx context.Context, name model.TeamName) (*model.Team, []model.User, error) {
 	var team *model.Team
 	var users []model.User
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		var err error
 		team, err = u.teamR.GetTeam(ctx, name)
 		if err != nil {

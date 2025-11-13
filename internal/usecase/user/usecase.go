@@ -20,15 +20,16 @@ var _ Usecase = &impl{}
 
 type impl struct {
 	repo UserRepo
+	tr   transaction.Transactor
 }
 
-func New(repo UserRepo) *impl {
-	return &impl{repo: repo}
+func New(repo UserRepo, tr transaction.Transactor) *impl {
+	return &impl{repo: repo, tr: tr}
 }
 
 func (u *impl) SetIsActive(ctx context.Context, id model.UserId, isActive bool) (*model.User, error) {
 	var user *model.User
-	err := transaction.DoAtomically(func(ctx context.Context) error {
+	err := u.tr.DoAtomically(ctx, func(ctx context.Context) error {
 		var err error
 		user, err = u.repo.GetUser(ctx, id)
 		if err != nil {
