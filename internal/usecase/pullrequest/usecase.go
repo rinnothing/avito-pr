@@ -2,7 +2,6 @@ package pullrequest
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -82,11 +81,8 @@ func (u *impl) CreatePR(ctx context.Context, pr *model.PullRequest) (*model.Pull
 		pr.Reviewers = reviewers
 		pr.Status = model.PROpen
 
-		err = u.prR.CreatePR(ctx, pr)
-		if errors.Is(err, model.ErrAlreadyExists) {
-			err = u.prR.UpdatePR(ctx, pr)
-		}
-		return err
+		// don't need to create pr when it's already existing
+		return u.prR.CreatePR(ctx, pr)
 	})
 
 	return pr, err
@@ -118,8 +114,12 @@ func (u *impl) Reassign(ctx context.Context, id model.PRId, userId model.UserId)
 			return err
 		}
 
+		if pr.MergedAt == nil {
+			return model.ErrAlreadyMerged
+		}
+
 		if !slices.ContainsFunc(pr.Reviewers, func(id model.UserId) bool { return id == userId }) {
-			return fmt.Errorf("user with id = %s is not a reviewer of pr with id = %s: %w", userId, id, model.ErrWrongInvariant)
+			return fmt.Errorf("user with id = %s is not a reviewer of pr with id = %s: %w", userId, id, model.ErrNotReviewer)
 		}
 
 		wrongUsers := map[model.UserId]struct{}{
@@ -158,7 +158,7 @@ func (u *impl) Reassign(ctx context.Context, id model.PRId, userId model.UserId)
 
 			return nil
 		}
-		return fmt.Errorf("can't reassign user: no other users found in team: %w", model.ErrWrongInvariant)
+		return fmt.Errorf("can't reassign user: no other users found in team: %w", model.ErrNoCandidates)
 	})
 
 	for i := range pr.Reviewers {

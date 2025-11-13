@@ -50,11 +50,8 @@ func (u *impl) CreateTeam(ctx context.Context, team *model.Team, users []model.U
 			}
 		}
 
-		err = u.teamR.CreateTeam(ctx, team)
-		if errors.Is(err, model.ErrAlreadyExists) {
-			err = u.teamR.UpdateTeam(ctx, team)
-		}
-		return err
+		// don't need to create team when it's already existing
+		return u.teamR.CreateTeam(ctx, team)
 	})
 
 	return team, users, err
