@@ -2,8 +2,10 @@ package team
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rinnothing/avito-pr/internal/model"
+	"github.com/rinnothing/avito-pr/pkg/transaction"
 )
 
 type Usecase interface {
@@ -13,6 +15,7 @@ type Usecase interface {
 
 type TeamRepo interface {
 	CreateTeam(context.Context, *model.Team) error
+	UpdateTeam(context.Context, *model.Team) error
 	GetTeam(context.Context, model.TeamName) (*model.Team, error)
 }
 
@@ -20,4 +23,63 @@ type UserRepo interface {
 	CreateUser(context.Context, *model.User) error
 	UpdateUser(context.Context, *model.User) error
 	GetUser(context.Context, model.UserId) (*model.User, error)
+}
+
+var _ Usecase = &impl{}
+
+type impl struct {
+	teamR TeamRepo
+	userR UserRepo
+}
+
+func New(team TeamRepo, user UserRepo) *impl {
+	return &impl{teamR: team, userR: user}
+}
+
+func (u *impl) CreateTeam(ctx context.Context, team *model.Team, users []model.User) (*model.Team, []model.User, error) {
+	err := transaction.DoAtomically(func(ctx context.Context) error {
+		var err error
+		for _, user := range users {
+			err = u.userR.CreateUser(ctx, &user)
+			if errors.Is(err, model.ErrAlreadyExists) {
+				err = u.userR.UpdateUser(ctx, &user)
+			}
+			if err != nil {
+				return err
+			}
+		}
+
+		err = u.teamR.CreateTeam(ctx, team)
+		if errors.Is(err, model.ErrAlreadyExists) {
+			err = u.teamR.UpdateTeam(ctx, team)
+		}
+		return err
+	})
+
+	return team, users, err
+}
+
+func (u *impl) GetTeam(ctx context.Context, name model.TeamName) (*model.Team, []model.User, error) {
+	var team *model.Team
+	var users []model.User
+	err := transaction.DoAtomically(func(ctx context.Context) error {
+		var err error
+		team, err = u.teamR.GetTeam(ctx, name)
+		if err != nil {
+			return err
+		}
+
+		users = make([]model.User, 0, len(team.Members))
+		for _, id := range team.Members {
+			user, err := u.userR.GetUser(ctx, id)
+			if err != nil {
+				return err
+			}
+
+			users = append(users, *user)
+		}
+		return nil
+	})
+
+	return team, users, err
 }
