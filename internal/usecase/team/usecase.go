@@ -15,7 +15,6 @@ type Usecase interface {
 
 type TeamRepo interface {
 	CreateTeam(context.Context, *model.Team) error
-	UpdateTeam(context.Context, *model.Team) error
 	GetTeam(context.Context, model.TeamName) (*model.Team, error)
 }
 

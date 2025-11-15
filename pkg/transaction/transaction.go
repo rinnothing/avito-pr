@@ -56,7 +56,7 @@ type keyType struct{}
 
 var ErrTxNotFound = errors.New("tx not found in context")
 
-func extractTx(ctx context.Context) (pgx.Tx, error) {
+func ExtractTx(ctx context.Context) (pgx.Tx, error) {
 	tx, ok := ctx.Value(keyType{}).(pgx.Tx)
 	if !ok {
 		return nil, ErrTxNotFound
@@ -66,7 +66,7 @@ func extractTx(ctx context.Context) (pgx.Tx, error) {
 }
 
 func injectTx(ctx context.Context, pool *pgxpool.Pool) (context.Context, pgx.Tx, error) {
-	if tx, err := extractTx(ctx); err == nil {
+	if tx, err := ExtractTx(ctx); err == nil {
 		return ctx, tx, nil
 	}
 
