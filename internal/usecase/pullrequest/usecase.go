@@ -114,7 +114,7 @@ func (u *impl) Reassign(ctx context.Context, id model.PRId, userId model.UserId)
 			return err
 		}
 
-		if pr.MergedAt == nil {
+		if pr.MergedAt != nil {
 			return model.ErrAlreadyMerged
 		}
 
@@ -160,6 +160,10 @@ func (u *impl) Reassign(ctx context.Context, id model.PRId, userId model.UserId)
 		}
 		return fmt.Errorf("can't reassign user: no other users found in team: %w", model.ErrNoCandidates)
 	})
+
+	if err != nil {
+		return nil, "", err
+	}
 
 	for i := range pr.Reviewers {
 		if pr.Reviewers[i] == userId {

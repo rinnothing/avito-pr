@@ -15,4 +15,5 @@ build: generate-api
 
 .PHONY: start
 start:
+	docker-compose build
 	docker-compose up

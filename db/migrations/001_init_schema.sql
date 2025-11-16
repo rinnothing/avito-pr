@@ -37,6 +37,7 @@ CREATE TABLE pr_reviewers (
         FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- +goose Down
 DROP TABLE pr_reviewers;
 DROP TABLE pull_requests;
 DROP TABLE users;

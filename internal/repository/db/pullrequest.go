@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -168,12 +169,22 @@ WHERE id = $1
 `
 
 	var pr model.PullRequest
-	err = tx.QueryRow(ctx, queryPR, id).Scan(&pr.Id, &pr.Name, &pr.AuthorId, &pr.Status, &pr.CreatedAt, &pr.MergedAt)
+	var status string
+	err = tx.QueryRow(ctx, queryPR, id).Scan(&pr.Id, &pr.Name, &pr.AuthorId, &status, &pr.CreatedAt, &pr.MergedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, model.ErrNotFound
 		}
 		return nil, err
+	}
+
+	switch status {
+	case "open":
+		pr.Status = model.PROpen
+	case "merged":
+		pr.Status = model.PRMerged
+	default:
+		return nil, fmt.Errorf("unknown status: %s", status)
 	}
 
 	const queryUser = `

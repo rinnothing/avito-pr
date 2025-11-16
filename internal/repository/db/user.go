@@ -47,7 +47,7 @@ RETURNING id
 `
 
 	var insertedID string
-	err = tx.QueryRow(ctx, queryUser, user.Id, user.TeamName, user.IsActive).Scan(&insertedID)
+	err = tx.QueryRow(ctx, queryUser, user.Id, user.Username, user.TeamName, user.IsActive).Scan(&insertedID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.ErrAlreadyExists

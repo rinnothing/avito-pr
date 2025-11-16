@@ -4,7 +4,7 @@ services:
     restart: always
     shm_size: 128mb
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     env_file:
       - .env
 
@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - prod.log:prod.log
+      - ./prod.log:/usr/src/server/prod.log
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
 
