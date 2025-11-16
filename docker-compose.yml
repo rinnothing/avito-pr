@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  server:
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - prod.log:prod.log
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+
+volumes:
+  postgres_data:

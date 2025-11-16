@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
@@ -13,10 +12,9 @@ import (
 
 type (
 	Config struct {
-		Logger    `koanf:"logger"`
-		HTTP      `koanf:"http"`
-		Transport `koanf:"transport"`
-		PG        `koanf:"pg"`
+		Logger `koanf:"logger"`
+		HTTP   `koanf:"http"`
+		PG     `koanf:"pg"`
 	}
 
 	Logger struct {
@@ -36,17 +34,6 @@ type (
 
 	HTTP struct {
 		Port string `koanf:"port"`
-	}
-
-	Transport struct {
-		Timeout               time.Duration `koanf:"timeout"`
-		KeepAlive             time.Duration `koanf:"keep_alive"`
-		ForceAttemptHTTP2     bool          `koanf:"force_attempt_http2"`
-		MaxIdleConns          int           `koanf:"max_idle_conns"`
-		MaxConnsPerHost       int           `koanf:"max_conns_per_host"`
-		IdleConnTimeout       time.Duration `koanf:"idle_conn_timeout"`
-		TLSHandshakeTimeout   time.Duration `koanf:"tls_handshake_timeout"`
-		ExpectContinueTimeout time.Duration `koanf:"expect_continue_timeout"`
 	}
 )
 

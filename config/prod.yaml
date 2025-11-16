@@ -1,0 +1,12 @@
+logger:
+  level: info
+  filepath: prod.log
+http:
+  port: 8080
+pg:
+  host: db
+  port: 5432
+  db: pr_db
+  user: master
+  password: 12345
+  max_conn: 10
