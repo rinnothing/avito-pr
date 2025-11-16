@@ -97,12 +97,12 @@ func TestHappyPath(t *testing.T) {
 	require.Equal(t, revs.JSON200.PullRequests[0].AuthorId, fstIDs[0])
 	require.Equal(t, revs.JSON200.PullRequests[0].PullRequestId, prId)
 	require.Equal(t, revs.JSON200.PullRequests[0].PullRequestName, prName)
-	require.Equal(t, revs.JSON200.PullRequests[0].Status, "OPEN")
+	require.Equal(t, revs.JSON200.PullRequests[0].Status, gen.PullRequestShortStatus("OPEN"))
 
 	// merge pr
 	merged, err := client.MergePullRequest(ctx, prId)
 	require.NoError(t, err)
 
 	require.Equal(t, merged.StatusCode(), http.StatusOK)
-	require.Equal(t, merged.JSON200.Pr.Status, "MERGED")
+	require.Equal(t, merged.JSON200.Pr.Status, gen.PullRequestStatus("MERGED"))
 }

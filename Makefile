@@ -17,3 +17,7 @@ build: generate-api
 start:
 	docker-compose build
 	docker-compose up
+
+.PHONY: integration-test
+integration-test:
+	cd integration && go test ./...

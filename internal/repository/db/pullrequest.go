@@ -107,7 +107,16 @@ RETURNING id
 		mergedAt = pr.MergedAt
 	}
 
-	err = tx.QueryRow(ctx, queryPR, pr.Id, pr.Name, pr.Status, mergedAt).Scan(&newId)
+	var internalStatus string
+	switch pr.Status {
+	case model.PROpen:
+		internalStatus = "open"
+	case model.PRMerged:
+		internalStatus = "merged"
+	default:
+		return fmt.Errorf("no such model status: %d", pr.Status)
+	}
+	err = tx.QueryRow(ctx, queryPR, pr.Id, pr.Name, internalStatus, mergedAt).Scan(&newId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.ErrNotFound
